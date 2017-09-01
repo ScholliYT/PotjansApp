@@ -1,272 +1,121 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Threading;
+using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.UI;
-
-public class DownloadTable : MonoBehaviour {
-
-    [SerializeField] private string url;
-    [SerializeField] private Transform contenTransform;
-    [SerializeField] private Text lessonPrefab;
-
-    private Day[] days;
-
-    public static DownloadTable instance;
-
-    private struct Day {
-        public bool hasDate;
-        public string info;
-        public DateTime date;
-        public Lesson[] duelmen;
-        public Lesson[] buldern;
-        public Lesson[] hausduelmen;
-
-        public Day(string _date, Lesson[] _duelmen, Lesson[] _buldern, Lesson[] _hausduelmen) {
-            if (_date.Substring(5).Split('.').Length == 3) {
-                //its a real date
-                string dateSubstring = _date.Substring(5);
-                string[] dateSplit = dateSubstring.Split('.');
-                int year = int.Parse(dateSplit[2]);
-                int month = int.Parse(dateSplit[1]);
-                int day = int.Parse(dateSplit[0]);
-                date = new DateTime(year, month, day);
-                hasDate = true;
-                info = "";
-            }
-            else {
-                //something else
-                date = new DateTime(1970, 1, 1);
-                hasDate = false;
-                info = _date;
-            }
-            
-            duelmen = _duelmen;
-            buldern = _buldern;
-            hausduelmen = _hausduelmen;
-        }
-    }
-
-    private struct Lesson {
-        public string time;
-        public string topic;
-
-        public Lesson(string _time, string _topic) {
-            time = _time;
-            topic = _topic;
-        }
-    }
-
-	// Use this for initialization
-	void Start () {
-	    if (instance == null) {
-	        instance = this;
-	    }
-	    else {
-	        Debug.LogError("Multiple instances");
-	    }
-	    
-        refreshData();
-
-	}
-
-    public void loadNewData(string location) {
-        clearDisplayedData();
-        displayData(location);
-        //TODO: Auto jump to current date entery or next best
-    }
-
-    private void clearDisplayedData() {
-        foreach (Transform t in contenTransform) {
-            Destroy(t.gameObject);
-        }
-    }
-
-    private void displayData(string location) {
-        foreach (Day day in days) {
-            Text txtTime = Instantiate(lessonPrefab, contenTransform);
-            if (day.hasDate) {
-                CultureInfo culture = new CultureInfo("de-DE");
-                txtTime.text = culture.DateTimeFormat.GetDayName(day.date.DayOfWeek) + ", " + day.date.Date.ToString("d", culture);
-                txtTime.fontStyle = FontStyle.Bold;
-            }
-            else {
-                txtTime.text = day.info;
-                txtTime.fontStyle = FontStyle.Bold;
-                txtTime.fontStyle = FontStyle.BoldAndItalic;
-            }
-            
-
-            switch (location)
-            {
-                case "duelmen":
-                    foreach (Lesson lesson in day.duelmen)
-                    {
-                        if (lesson.topic != null)
-                        {
-                            if (lesson.topic.Equals("kein Unterricht"))
-                            {
-                                if (day.hasDate)
-                                {
-                                    Destroy(txtTime.gameObject);
-                                    continue;
-                                }
-                            }
-                        }
-                        if (string.IsNullOrEmpty(lesson.time) && string.IsNullOrEmpty(lesson.topic))
-                        {
-                            if (day.hasDate) {
-                                Destroy(txtTime.gameObject);
-                            }
-                            continue;
-                        }
-                        Text txtDuelmen = Instantiate(lessonPrefab, contenTransform);
-                        txtDuelmen.text = lesson.time + " " + lesson.topic;
-                    }
-                    break;
-                case "buldern":
-                    foreach (Lesson lesson in day.buldern)
-                    {
-                        if (lesson.topic != null)
-                        {
-                            if (lesson.topic.Equals("kein Unterricht"))
-                            {
-                                if (day.hasDate)
-                                {
-                                    Destroy(txtTime.gameObject);
-                                    continue;
-                                }
-                            }
-                        }
-                        if (string.IsNullOrEmpty(lesson.time) && string.IsNullOrEmpty(lesson.topic))
-                        {
-                            if (day.hasDate)
-                            {
-                                Destroy(txtTime.gameObject);
-                            }
-                            continue;
-                        }
-                        Text txtDuelmen = Instantiate(lessonPrefab, contenTransform);
-                        txtDuelmen.text = lesson.time + " " + lesson.topic;
-                    }
-                    break;
-
-                case "hausduelmen":
-                    foreach (Lesson lesson in day.hausduelmen)
-                    {
-                        if (lesson.topic != null)
-                        {
-                            if (lesson.topic.Equals("kein Unterricht"))
-                            {
-                                if (day.hasDate)
-                                {
-                                    Destroy(txtTime.gameObject);
-                                    continue;
-                                }
-                            }
-                        }
-                        if (string.IsNullOrEmpty(lesson.time) && string.IsNullOrEmpty(lesson.topic))
-                        {
-                            if (day.hasDate)
-                            {
-                                Destroy(txtTime.gameObject);
-                            }
-                            continue;
-                        }
-                        Text txtDuelmen = Instantiate(lessonPrefab, contenTransform);
-                        txtDuelmen.text = lesson.time + " " + lesson.topic;
-                    }
-                    break;
-                default:
-                    break;
-            }
 
 
-        }
-    }
-
-    private void refreshData() {
+public class DownloadTable
+{
+    public static Dictionary<string, Day[]> reloadData()
+    {
         bool succ;
         string htmlData = download(out succ);
-        if (!succ) {
-            return;
+        if (!succ)
+        {
+            return null;
         }
-        days = convertToStruct(htmlData);
-
-        foreach (Day day in days) {
-            string d = day.duelmen.Length + " -> ";
-            string b = day.buldern.Length + " -> ";
-            string h = day.hausduelmen.Length + " -> ";
-            foreach (Lesson lesson in day.duelmen) {
-                d += "[" + lesson.time + " | " + lesson.topic + "]";
-            }
-            foreach (Lesson lesson in day.buldern)
-            {
-                b += "[" + lesson.time + " | " + lesson.topic + "]";
-            }
-            foreach (Lesson lesson in day.hausduelmen)
-            {
-                h += "[" + lesson.time + " | " + lesson.topic + "]";
-            }
-            Debug.Log(day.date + " " + d + " ... " + b + " ... " + h);
-        }
+        string[] talbeOnly = extractTable(htmlData).Split(new[] { "  <tr>" }, StringSplitOptions.RemoveEmptyEntries);
+        return !checkSettings(talbeOnly) ? null : convertToDic(talbeOnly);
     }
 
-    private string download(out bool succ) {
-        WWW www = new WWW(url);
-        while (!www.isDone) {
+    private static string download(out bool _succ)
+    {
+        WWW www = new WWW(Config.url);
+        while (!www.isDone)
+        {
             //Debug.Log(www.progress);
         }
-        if (string.IsNullOrEmpty(www.error)) {
-            succ = true;
+        if (string.IsNullOrEmpty(www.error))
+        {
+            _succ = true;
+            Debug.Log("Bytes: " + www.text.Length);
             return www.text;
         }
         Debug.LogError("Failed to download");
-        succ = false;
+        _succ = false;
         return "";
     }
 
-    private Day[] convertToStruct(string _htmlData) {
-        string table = extractTable(_htmlData);
-        Debug.Log("Usefull: " + table);
-
-        string[] tmpdays = table.Split(new [] { "  <tr>" }, StringSplitOptions.RemoveEmptyEntries);
-        Day[] days = new Day[tmpdays.Length];
-        int lastGotAddedToDayBefore = 1;
-        int daysI = -1;
-        for (int i = 0; i < tmpdays.Length; i++)
-        {
-            string tmp = tmpdays[i];
-            string[] data = new string[7];
-            for (int j = 0; j < 7; j++) {
-                tmp = tmp.Substring(4);
-                data[j] = getBetween(tmp, "<td>", "</td>");
-
-                tmp = tmp.Substring(9 + data[j].Length);
-            }
-            if (data[0].Equals("")) {
-                Debug.Log("---" + daysI);
-                days[daysI].duelmen = addLessonIfNeeded(days[daysI].duelmen, data[1], data[2]);
-                days[daysI].buldern = addLessonIfNeeded(days[daysI].buldern, data[3], data[4]);
-                days[daysI].hausduelmen = addLessonIfNeeded(days[daysI].hausduelmen, data[6], data[6]);
-            }
-            else
-            {
-                daysI++;
-                Debug.Log(daysI + " " + data[0]);
-                days[daysI] = new Day(data[0], new Lesson[] { new Lesson(data[1], data[2]) }, new Lesson[] { new Lesson(data[3], data[4]) }, new Lesson[] { new Lesson(data[5], data[6]) });
-            }
-        }
-        days = days.Where(_day => _day.duelmen != null && _day.buldern != null && _day.hausduelmen != null).ToArray();
-        return days;
+    private static bool checkSettings(string[] _talbeOnly)
+    {
+        int locationsCount = (Regex.Matches(_talbeOnly[0], "</td>").Count - 1) / 2;
+        if (locationsCount == Config.locations.Length) return true;
+        Debug.LogWarning("Server: " + locationsCount + " Config: " + Config.locations.Length + " are not the same!");
+        return false;
     }
 
-    private static string extractTable(string _htmlData) {
-        string table = getBetween(_htmlData, "<table width=\"100%\" border=\"1\" cellpadding=\"0\" cellspacing=\"0\">", "</table>");
-        table = table.Substring(table.IndexOf("  <tr>"));
+    private static Dictionary<string, Day[]> convertToDic(string[] _talbeOnly)
+    {
+
+        Dictionary<string, Day[]> tmpDays = new Dictionary<string, Day[]>();
+        //TODO: dont loop over evey location. Data is there. Redundant. Need to fix this
+        for (int location = 0; location < Config.locations.Length; location++)
+        {
+            Debug.Log("<color=white>" + Config.locations[location] + "</color>");
+            List<Day> tmpDay = new List<Day>();
+            bool skipAdditionalLessonsForThisDay = false;
+            foreach (string dDay in _talbeOnly)
+            {
+                string tmp = dDay.Substring(4);
+                string dataDay = StringUtility.getBetween(tmp, "<td>", "</td>");
+                tmp = tmp.Substring(9 + dataDay.Length);
+                Lesson[] dataLessons = new Lesson[Config.locations.Length];
+                for (int loc = 0; loc < Config.locations.Length; loc++)
+                {
+                    tmp = tmp.Substring(4);
+                    string time = StringUtility.getBetween(tmp, "<td>", "</td>");
+                    tmp = tmp.Substring(9 + time.Length);
+
+                    tmp = tmp.Substring(4);
+                    string topic = StringUtility.getBetween(tmp, "<td>", "</td>");
+                    tmp = tmp.Substring(9 + topic.Length);
+
+                    dataLessons[loc] = Lesson.createLesson(time, topic);
+                }
+                if (dataDay.Equals(""))
+                {
+                    if (skipAdditionalLessonsForThisDay) continue;
+                    NormalDay normalDay = tmpDay[tmpDay.Count - 1] as NormalDay;
+                    if (normalDay == null) continue; //should never be true
+                    NormalDay day = normalDay;
+                    day.lessons = addLessonIfNeeded(day.lessons, dataLessons[location]);
+                    Debug.Log("<color=green>" + tmpDay.Count + " " + tmpDay[tmpDay.Count - 1] + "</color>");
+                }
+                else if (dataDay.Substring(5).Split('.').Length == 3) //its a valid date
+                {
+                    //string[] dateSplit = dataDay.Substring(5).Split('.');
+                    //DateTime dateOfDay = new DateTime(int.Parse(dateSplit[2]), int.Parse(dateSplit[1]), int.Parse(dateSplit[0])); //convert string date into DateTime object
+                    DateTime dateOfDay = DateTime.Parse(dataDay.Substring(5), new CultureInfo("de-DE")); //has to be de-DE
+
+                    if (dataLessons[location].topic.Equals("kein Unterricht") || string.IsNullOrEmpty(dataLessons[location].topic) && dataLessons[location].timeIsEmpty())
+                    {
+                        Debug.Log("<color=black>Kein Unterricht: " + dateOfDay.Date.ToString("D", Config.mainCultureInfo) + "</color>");
+                        skipAdditionalLessonsForThisDay = true;
+                        continue;
+                    }
+                    NormalDay day = new NormalDay(dateOfDay, new[] { dataLessons[location] });
+                    skipAdditionalLessonsForThisDay = false;
+                    tmpDay.Add(day);
+                    Debug.Log("<color=blue>" + tmpDay.Count + " " + tmpDay[tmpDay.Count - 1] + "</color>");
+                }
+                else
+                {
+                    //its an InfoDay
+                    tmpDay.Add(new InfoDay(dataDay));
+                    Debug.Log("<color=yellow>" + tmpDay.Count + " " + tmpDay[tmpDay.Count - 1] + "</color>");
+                }
+            }
+            tmpDays.Add(Config.locations[location], tmpDay.ToArray());
+        }
+
+        return tmpDays;
+    }
+
+    private static string extractTable(string _htmlData)
+    {
+        string table = StringUtility.getBetween(_htmlData, "<table width=\"100%\" border=\"1\" cellpadding=\"0\" cellspacing=\"0\">", "</table>");
+        table = table.Substring(table.IndexOf("  <tr>", StringComparison.Ordinal));
         table = table.Replace("\n", "");
         table = table.Replace("\r", "");
         table = table.Replace(
@@ -286,28 +135,14 @@ public class DownloadTable : MonoBehaviour {
         return table;
     }
 
-    private Lesson[] addLessonIfNeeded(Lesson[] _old, string _time, string _topic) {
-        if (_time.Equals("") && _topic.Equals("")) return _old;
+    private static Lesson[] addLessonIfNeeded(Lesson[] _old, Lesson _new)
+    {
+        if (_new.timeIsEmpty() && _new.topic.Equals("")) return _old;
         Lesson[] newLessons = new Lesson[_old.Length + 1];
-        Lesson[] lesson = new Lesson[] { new Lesson(_time, _topic) };
+        Lesson[] lesson = { _new };
         _old.CopyTo(newLessons, 0);
         lesson.CopyTo(newLessons, _old.Length);
         return newLessons;
-    } 
-
-
-    public static string getBetween(string strSource, string strStart, string strEnd)
-    {
-        if (strSource.Contains(strStart) && strSource.Contains(strEnd))
-        {
-            int Start = strSource.IndexOf(strStart, 0) + strStart.Length;
-            int End = strSource.IndexOf(strEnd, Start);
-            return strSource.Substring(Start, End - Start);
-        }
-        else
-        {
-            return "";
-        }
     }
 }
 

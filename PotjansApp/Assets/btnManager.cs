@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class btnManager : MonoBehaviour {
 
-    public void click(string location) {
-        DownloadTable.instance.loadNewData(location);
+    public void click(string _location) {
+        Manager.instance.displayLocalData(_location);
     }
 }
