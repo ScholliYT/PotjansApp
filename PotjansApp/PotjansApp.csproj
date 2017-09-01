@@ -78,7 +78,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Config.cs" />
+    <Compile Include="Assets\DataClasses.cs" />
     <Compile Include="Assets\DownloadTable.cs" />
+    <Compile Include="Assets\Manager.cs" />
+    <Compile Include="Assets\StringUtility.cs" />
     <Compile Include="Assets\btnManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
