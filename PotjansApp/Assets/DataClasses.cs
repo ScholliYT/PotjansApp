@@ -95,6 +95,7 @@ public class NormalLesson : Lesson
 
     public override string myToString()
     {
+
         return time.ToString("t", Config.mainCultureInfo) + " " + topic;
     }
 

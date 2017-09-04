@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PotjansApp</string>
+    <string name="time">Zeit</string>
+    <string name="topic">Thema</string>
+    <string name="menu_refresh">Daten neu laden</string>
+    <string name="menu_search">Suchen</string>
+    <string name="search_hint">\"21.10.2017\" oder \"Thema 5\"</string>
+    <string name="server_url">http://www.httpbin.org/headers</string>
+</resources>
