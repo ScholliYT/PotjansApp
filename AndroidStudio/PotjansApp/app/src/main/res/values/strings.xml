@@ -5,5 +5,5 @@
     <string name="menu_refresh">Refresh data</string>
     <string name="menu_search">Search</string>
     <string name="search_hint">\"10.21.2017\" or \"topic 5\"</string>
-    <string name="server_url">http://www.httpbin.org/headers</string>
+    <string name="server_url">https://pastebin.com/raw/sMrbUUEE</string>
 </resources>

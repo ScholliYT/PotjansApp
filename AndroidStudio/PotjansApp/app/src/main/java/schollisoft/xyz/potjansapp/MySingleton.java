@@ -22,7 +22,7 @@ public class MySingleton {
 
     private MySingleton(Context _ctx) {
         ctx = _ctx;
-        requestQueue = getRequestQueue();
+        //requestQueue = getRequestQueue();
     }
 
     public RequestQueue getRequestQueue() {
@@ -30,11 +30,8 @@ public class MySingleton {
 
             Cache cache = new DiskBasedCache(ctx.getCacheDir(), 1024 * 1024); //1MB
             Network network = new BasicNetwork(new HurlStack());
-            requestQueue = Volley.newRequestQueue(ctx.getApplicationContext());
             requestQueue = new RequestQueue(cache, network);
             requestQueue.start();
-
-
         }
         return requestQueue;
     }
@@ -45,9 +42,4 @@ public class MySingleton {
         }
         return instance;
     }
-
-    public void addToRequestQueue(Request _request) {
-        requestQueue.add(_request);
-    }
-
 }

@@ -27,13 +27,18 @@ import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import schollisoft.xyz.potjansapp.DataClasses.Data;
+import schollisoft.xyz.potjansapp.DataClasses.JSONLesson;
 import schollisoft.xyz.potjansapp.DataClasses.Lesson;
 
 public class MainActivity extends AppCompatActivity {
@@ -84,21 +89,16 @@ public class MainActivity extends AppCompatActivity {
         setupSwipeControls();
 
         //Check if new Data is needed ? download data : continue
-        //TODO: Dynamic
-        locations = new String[]{"Dülmen", "Buldern", "Hausdülmen"};
-
-        //TODO: Dynamic
-        lessons.put(locations[0], new Lesson[]{Lesson.createLesson("7 h", getResources().getString(R.string.topic) + ": 3"), Lesson.createLesson("9.30 h", getResources().getString(R.string.topic) + ": 4"), Lesson.createLesson("15 h", getResources().getString(R.string.topic) + ": 5"), Lesson.createLesson("19.30 h", getResources().getString(R.string.topic) + ": 6"), Lesson.createLesson("7 h", getResources().getString(R.string.topic) + ": 3"), Lesson.createLesson("9.30 h", getResources().getString(R.string.topic) + ": 4"), Lesson.createLesson("15 h", getResources().getString(R.string.topic) + ": 5"), Lesson.createLesson("19.30 h", getResources().getString(R.string.topic) + ": 6"), Lesson.createLesson("7 h", getResources().getString(R.string.topic) + ": 3"), Lesson.createLesson("9.30 h", getResources().getString(R.string.topic) + ": 4"), Lesson.createLesson("15 h", getResources().getString(R.string.topic) + ": 5"), Lesson.createLesson("19.30 h", getResources().getString(R.string.topic) + ": 6"), Lesson.createLesson("7 h", getResources().getString(R.string.topic) + ": 3"), Lesson.createLesson("9.30 h", getResources().getString(R.string.topic) + ": 4"), Lesson.createLesson("15 h", getResources().getString(R.string.topic) + ": 5"), Lesson.createLesson("19.30 h", getResources().getString(R.string.topic) + ": 6"), Lesson.createLesson("7 h", getResources().getString(R.string.topic) + ": 3"), Lesson.createLesson("9.30 h", getResources().getString(R.string.topic) + ": 4"), Lesson.createLesson("15 h", getResources().getString(R.string.topic) + ": 5"), Lesson.createLesson("19.30 h", getResources().getString(R.string.topic) + ": 6"), Lesson.createLesson("7 h", getResources().getString(R.string.topic) + ": 3"), Lesson.createLesson("9.30 h", getResources().getString(R.string.topic) + ": 4"), Lesson.createLesson("15 h", getResources().getString(R.string.topic) + ": 5"), Lesson.createLesson("19.30 h", getResources().getString(R.string.topic) + ": 6")});
-        lessons.put(locations[1], new Lesson[]{Lesson.createLesson("8 h", getResources().getString(R.string.topic) + ": 4"), Lesson.createLesson("10.30 h", getResources().getString(R.string.topic) + ": 5"), Lesson.createLesson("16 h", getResources().getString(R.string.topic) + ": 6"), Lesson.createLesson("20.30 h", getResources().getString(R.string.topic) + ": 7")});
-        lessons.put(locations[2], new Lesson[]{Lesson.createLesson("9 h", getResources().getString(R.string.topic) + ": 5"), Lesson.createLesson("11.30 h", getResources().getString(R.string.topic) + ": 6"), Lesson.createLesson("17 h", getResources().getString(R.string.topic) + ": 7"), Lesson.createLesson("21 h", getResources().getString(R.string.topic) + ": 8")});
+        reloadData();
 
         //Display local data
-        displayData(lessons.get(locations[currentDisplayed]));
+
 
     }
 
     private void reloadData() {
 
+        Log.d("Info: ", "RELOAD DATA");
         sw_refresh.setRefreshing(true);
 
         RequestQueue requestQueue;
@@ -113,7 +113,28 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            Log.d("Response: ", response.toString(4));
+                            Gson gson = new Gson();
+                            Data data = gson.fromJson(response.toString(), Data.class);
+                            Log.d("Response Length: " , response.toString(4).length() + " chars");
+                            Log.d("Data", data.toString());
+                            ArrayList<String> tempLocations = new ArrayList<>();
+                            for(Map.Entry<String, JSONLesson[]> e : data.getLocations().entrySet()) {
+                                tempLocations.add(e.getKey());
+                                ArrayList<Lesson> tempLesson = new ArrayList<>();
+                                for(JSONLesson jl : e.getValue()) {
+                                    tempLesson.add(Lesson.createLesson(jl.getDate(), jl.getTime(), jl.getTopic()));
+                                }
+                                Lesson[] tempLessonArray = new Lesson[tempLesson.size()];
+                                lessons.put(e.getKey(), tempLesson.toArray(tempLessonArray));
+                            }
+                            String[] tempLocationsArray = new String[tempLocations.size()];
+                            locations = tempLocations.toArray(tempLocationsArray);
+                            for(String s : locations) {
+                                Log.d("Locations", s);
+                            }
+                            displayData(lessons.get(locations[currentDisplayed]));
+
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -131,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         // Add the request to the RequestQueue.
-        requestQueue.add(getRequest);
+        MySingleton.getInstance(this).getRequestQueue().add(getRequest);
     }
 
     private void search(String query) {

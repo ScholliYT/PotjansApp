@@ -8,18 +8,18 @@ import java.util.Date;
  */
 
 public class NormalLesson extends Lesson {
-    private Date time;
-    public Date getTime() {
-        return time;
+    private Date date;
+    public Date getDate() {
+        return date;
     }
 
-    public NormalLesson(Date _time, String _topic) {
+    public NormalLesson(Date _date, String _topic) {
         super(_topic);
-        time = _time;
+        date = _date;
     }
 
     public String toString() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-        return sdf.format(time) + "    " + topic;
+        return sdf.format(date) + "    " + topic;
     }
 }
