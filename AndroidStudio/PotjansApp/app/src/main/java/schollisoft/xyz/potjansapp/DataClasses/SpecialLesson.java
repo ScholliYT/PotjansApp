@@ -6,6 +6,10 @@ package schollisoft.xyz.potjansapp.DataClasses;
 
 public class SpecialLesson extends Lesson {
     private String info;
+    public String getInfo() {
+        return info;
+    }
+
     public SpecialLesson(String _info, String _topic) {
         super(_topic);
         info = _info;

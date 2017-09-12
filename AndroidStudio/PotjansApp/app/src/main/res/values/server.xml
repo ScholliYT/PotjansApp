@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="server_url" translatable="false">https://frey.lxnd.me/pjFile/result.json</string>
+    <string name="server_url_version" translatable="false">https://frey.lxnd.me/pjFile/current_version.txt</string>
+</resources>

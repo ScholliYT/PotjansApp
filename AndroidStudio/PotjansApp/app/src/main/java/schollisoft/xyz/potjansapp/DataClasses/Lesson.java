@@ -14,6 +14,9 @@ import java.util.regex.Pattern;
 
 public abstract class Lesson {
     protected String topic;
+    public String getTopic() {
+        return topic;
+    }
 
     public abstract String toString();
 
@@ -44,7 +47,6 @@ public abstract class Lesson {
             _time = "0" + _time;
         }
         String completeDate = _date + " " + _time;
-        Log.d("CompleteDate", completeDate);
         SimpleDateFormat sdf = new SimpleDateFormat("");
         switch (completeDate.length()) {
             case 13:

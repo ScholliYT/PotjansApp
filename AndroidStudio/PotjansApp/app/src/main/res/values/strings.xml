@@ -1,9 +1,11 @@
 <resources>
-    <string name="app_name">PotjansApp</string>
+    <string name="app_name" translatable="false">PotjansApp</string>
     <string name="time">Time</string>
     <string name="topic">Topic</string>
     <string name="menu_refresh">Refresh data</string>
     <string name="menu_search">Search</string>
     <string name="search_hint">\"10.21.2017\" or \"topic 5\"</string>
-    <string name="server_url">https://pastebin.com/raw/sMrbUUEE</string>
+    <string name="dlm">Duelmen</string>
+    <string name="hdl">Hausduelmen</string>
+    <string name="bln">Buldern</string>
 </resources>
